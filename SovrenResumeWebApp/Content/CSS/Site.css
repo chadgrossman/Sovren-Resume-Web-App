@@ -1,0 +1,54 @@
+﻿body {
+    padding-bottom: 20px;
+    overflow-x: hidden;
+}
+
+.body-content {
+    position: relative;
+}
+
+.body-content .container {
+    position: absolute;
+    top: 0;
+}
+
+/* Override the default bootstrap behavior where horizontal description lists 
+   will truncate terms that are too long to fit in the left column 
+*/
+.dl-horizontal dt {
+    white-space: normal;
+}
+
+.page {
+    overflow: hidden;
+}
+
+.header {
+    line-height: 34px;
+}
+
+.bottom-buffer {
+    margin-bottom: 10px;
+}
+
+.page-button {
+    margin-top: 10px;
+    padding: 5px 0;
+    width: 105px;
+    height: 35px;
+    transition: all 0.2s ease;
+}
+
+.page-button:hover {
+    cursor: pointer;
+}
+
+.results {
+    display: none;
+}
+
+#input-errors,
+#parse-errors {
+    color: red;
+    display: inline;
+}

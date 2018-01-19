@@ -1,0 +1,25 @@
+﻿.file-upload {
+    height: 200px;
+    border: 4px dashed #000;
+    position: relative;
+}
+
+.file-upload p {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    line-height: 170px;
+    color: #000;
+    font-family: Arial;
+}
+
+.file-upload input {
+    position: absolute;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    outline: none;
+    opacity: 0;
+    cursor: pointer;
+}

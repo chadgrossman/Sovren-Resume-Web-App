@@ -1,0 +1,54 @@
+﻿
+
+@if (@ViewBag.LoggedIn)
+{
+    <div class="container data-entry" id="data-entry">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2 col-sm-12 bottom-buffer">
+                <div class="col-md-12 col-sm-12 text-center file-upload">
+                    <input type="file" id="filePicker" name="files[]" class="files" multiple />
+                    <p>Drag your files here or click in this area.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2 col-sm-12 text-center">
+                <div class="row">
+                    <div class="col-md-12">
+                        <button class="page-button reset">Reset</button>
+                        <button class="page-button resume-submit">Next</button>
+                        <div id="parse-errors"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="container page results" id="results">
+        <div class="row header">
+            <div class="col-md-2 col-sm-12">File Name</div>
+            <div class="col-md-2 col-sm-6">First Name</div>
+            <div class="col-md-2 col-sm-6">Last Name</div>
+            <div class="col-md-4 col-sm-6">Email</div>
+            <div class="col-md-2 col-sm-6">Phone</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 col-sm-6">
+                <input type="text" id="job-order" class="form-control job-order" placeholder="Job Order (If creating Screenings)" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12">
+                <button class="page-button save">Save</button>
+                <div id="input-errors"></div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <h2>Who are you?</h2>
+    <p>
+        @Html.ActionLink("Login to Salesforce", "Login", "Home")
+    </p>
+}

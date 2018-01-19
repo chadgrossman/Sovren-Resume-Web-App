@@ -45,21 +45,8 @@ namespace SovrenResumeWebApp.Controllers
                 ViewBag.RefreshToken = refreshToken;
 
                 ViewBag.LoggedIn = true;
-                return RedirectToAction("GetCleanIndex", new { instanceUrl = instanceUrl, token = token, user = user, refreshToken = refreshToken });
             }
             return View();            
-        }
-
-        public ActionResult GetCleanIndex(string instanceUrl, string token, string refreshToken, string user)
-        {
-            ViewBag.InstanceUrl = instanceUrl;
-            ViewBag.Token = token;
-            ViewBag.User = user;
-            ViewBag.RefreshToken = refreshToken;
-
-            ViewBag.LoggedIn = true;
-
-            return View("Index");
         }
 
         public ActionResult Login()

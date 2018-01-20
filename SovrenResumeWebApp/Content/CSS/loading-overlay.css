@@ -22,7 +22,7 @@
     opacity: .18;
     overflow: hidden;
     padding: 1px;
-    position: fixed;
+    position: absolute;
     text-align: center;
     top: 50%;
     width: 46px;

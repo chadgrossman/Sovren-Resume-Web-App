@@ -160,7 +160,8 @@ function formatUpsert() {
 }
 
 function loading() {
-    $(".loading").toggle();
+    $(".loading").removeClass('hidden');
+    $(".spinner").removeClass('hidden');
 };
 
 function transition() {

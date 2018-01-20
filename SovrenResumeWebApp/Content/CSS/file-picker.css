@@ -2,6 +2,7 @@
     height: 200px;
     border: 4px dashed #000;
     position: relative;
+    padding: 0;
 }
 
 .file-upload p {

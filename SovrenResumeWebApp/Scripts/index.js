@@ -93,17 +93,17 @@ function displayResults() {
             '    </div>' +
             '    <div class="col-md-2 col-sm-6">' +
             '        <input type="text" class="form-control first-name-input" value="' +
-            firstName +
+            toTitleCase(firstName) +
             '">' +
             '    </div>' +
             '    <div class="col-md-2 col-sm-6">' +
             '        <input type="text" class="form-control last-name-input" value="' +
-            lastName +
+            toTitleCase(lastName) +
             '">' +
             '    </div>' +
             '    <div class="col-md-4 col-sm-6">' +
             '        <input type="email" class="form-control email-input" value="' +
-            email +
+            email.toLowerCase() +
             '">' +
             '    </div>' +
             '    <div class="col-md-2 col-sm-6">' +
@@ -160,8 +160,8 @@ function formatUpsert() {
 }
 
 function loading() {
-    $(".loading").removeClass('hidden');
-    $(".spinner").removeClass('hidden');
+    $(".loading").toggleClass('hidden');
+    $(".spinner").toggleClass('hidden');
 };
 
 function transition() {
@@ -189,7 +189,11 @@ function sortResults(prop, asc) {
             return (b[prop] > a[prop]) ? 1 : ((b[prop] < a[prop]) ? -1 : 0);
         }
     });
-}
+};
+
+function toTitleCase(str) {
+    return str.replace(/\b\+*/g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
+};
 
 /* AJAX calls to controller */
 var initialPostRequest = function (json) {

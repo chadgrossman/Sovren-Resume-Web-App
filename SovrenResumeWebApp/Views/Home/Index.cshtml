@@ -2,29 +2,40 @@
 
 @if (@ViewBag.LoggedIn)
 {
-    <div class="container data-entry" id="data-entry">
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2 col-sm-12 bottom-buffer">
-                <div class="col-md-12 col-sm-12 text-center file-upload">
-                    <div class="spinner hidden"></div>
-                    <input type="file" id="filePicker" name="files[]" class="files" multiple />
-                    <p>Drag your files here or click in this area.</p>
-                </div>
+<div class="container data-entry" id="data-entry">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2 col-sm-12 bottom-buffer">
+            <div class="col-md-12 col-sm-12 text-center file-upload">
+                <div class="spinner hidden"></div>
+                <input type="file" id="filePicker" name="files[]" class="files" multiple />
+                <p>Drag your files here or click in this area.</p>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2 col-sm-12 text-center">
-                <div class="row">
-                    <div class="col-md-12">
-                        <button class="page-button reset">Reset</button>
-                        <button class="page-button resume-submit">Next</button>
-                        <div id="parse-errors"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2 col-sm-12 text-center">
+            <div class="row">
+                <div class="col-md-12">
+                    <button class="page-button reset">Reset</button>
+                    <button class="page-button resume-submit">Next</button>
+                    <div id="parse-errors"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2 col-sm-12 text-center file-names">
+            <div class="row">
+                <div class="col-md-6">
+                    <div id="file-names-left"></div>
+                </div>
+                <div class="col-md-6">
+                    <div id="file-names-right"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
     <div class="container page results" id="results">
         <div class="spinner hidden"></div>
         <div class="row header">

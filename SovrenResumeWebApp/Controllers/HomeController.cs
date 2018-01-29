@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
-using System.Web.Script.Serialization;
+using Newtonsoft.Json;
 using Salesforce.Common;
 using Salesforce.Common.Models;
 using SovrenResumeWebApp.Models;
@@ -46,7 +44,7 @@ namespace SovrenResumeWebApp.Controllers
 
                 ViewBag.LoggedIn = true;
             }
-            return View();            
+            return View();
         }
 
         public ActionResult Login()
@@ -61,115 +59,125 @@ namespace SovrenResumeWebApp.Controllers
             return Redirect(url);
         }
 
-        public async Task<ActionResult> GetRefreshToken(string refreshToken)
+        public string GetRefreshToken(string refresh)
         {
             var auth = new AuthenticationClient();
-            await auth.TokenRefreshAsync(_consumerKey, refreshToken, _consumerSecret);
+            auth.TokenRefreshAsync(_consumerKey, refresh, _consumerSecret);
 
-            ViewBag.Token = auth.AccessToken;
-            ViewBag.ApiVersion = auth.ApiVersion;
-            ViewBag.InstanceUrl = auth.InstanceUrl;
-            ViewBag.RefreshToken = auth.RefreshToken;
-
-            ViewBag.LoggedIn = true;
-
-            return View("Index");
+            return auth.AccessToken;
         }
 
         [HttpPost]
         public string SovrenResumeApi(string resumeRequest)
         {
-            HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri(_sovrenUrl);
-            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-            
-            HttpContent content = new StringContent(resumeRequest, Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = client.PostAsync(_sovrenUrl, content).Result;
-            string result;
-            if (response.IsSuccessStatusCode)
+            using (var client = new HttpClient())
             {
-                result = response.Content.ReadAsStringAsync().Result;
-            }
-            else
-            {
-                Response.StatusCode = (int)response.StatusCode;
-                result = response.StatusCode + response.ReasonPhrase;
-            }
+                client.BaseAddress = new Uri(_sovrenUrl);
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
-            return result;
+                HttpContent content = new StringContent(resumeRequest, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = client.PostAsync(_sovrenUrl, content).Result;
+                string result;
+                if (response.IsSuccessStatusCode)
+                {
+                    result = response.Content.ReadAsStringAsync().Result;
+                }
+                else
+                {
+                    Response.StatusCode = (int)response.StatusCode;
+                    result = response.ReasonPhrase;
+                }
+
+                return result;
+            }
         }
 
         [HttpPost]
-        public string SovrenResumeUpdateApi(string resumeUpdate)
+        public string SalesforceUpsert(string instanceUrl, string token, string refreshToken, Resumes resumes)
         {
-            HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri(_sovrenUrl + "/update");
-            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
-            HttpContent content = new StringContent(resumeUpdate, Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = client.PostAsync(_sovrenUrl + "/update", content).Result;
-            string result;
-            if (response.IsSuccessStatusCode)
+            if (!string.IsNullOrEmpty(resumes.JobOrder))
             {
-                result = response.Content.ReadAsStringAsync().Result;
-            }
-            else
-            {
-                Response.StatusCode = (int)response.StatusCode;
-                result = response.StatusCode + response.ReasonPhrase;
+                HttpResponseMessage jobOrderCheck = JobOrderLookup(instanceUrl, token, resumes.JobOrder);
+                if (jobOrderCheck.IsSuccessStatusCode)
+                {
+                    var responseString = jobOrderCheck.Content.ReadAsStringAsync();
+                    resumes.JobOrder = Regex.Replace(jobOrderCheck.Content.ReadAsStringAsync().Result, "['\"]", "");
+                } else
+                {
+                    Response.StatusCode = (int)jobOrderCheck.StatusCode;
+                    return jobOrderCheck.ReasonPhrase;
+                }
             }
 
-            return result;
-        }
+            HttpResponseMessage recordInserts = RecordInserts(instanceUrl, token, resumes);
 
-        [HttpPost]
-        public string SalesforceLookup(string instanceUrl, string token, string jobOrder)
-        {
-            string restQuery = instanceUrl + @"/services/apexrest/Sovren/" + jobOrder;
-            HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri(restQuery);
-            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpResponseMessage response = client.GetAsync(restQuery).Result;
-            string result;
-            if (response.IsSuccessStatusCode)
+            if (recordInserts.IsSuccessStatusCode)
             {
-                result = response.Content.ReadAsStringAsync().Result;
+                string updateJson = recordInserts.Content.ReadAsStringAsync().Result;
+                HttpResponseMessage sovrenResumeUpdate = SovrenResumeUpdateApi(updateJson);
+                if (sovrenResumeUpdate.IsSuccessStatusCode)
+                {
+                    return sovrenResumeUpdate.Content.ReadAsStringAsync().Result;
+                }
+                else
+                {
+                    Response.StatusCode = (int)sovrenResumeUpdate.StatusCode;
+                    return sovrenResumeUpdate.StatusCode + sovrenResumeUpdate.ReasonPhrase;
+                }
             } else
             {
-                Response.StatusCode = (int) response.StatusCode;
-                result = response.ReasonPhrase;
+                Response.StatusCode = (int)recordInserts.StatusCode;
+                return recordInserts.Content.ReadAsStringAsync().Result;
             }
-            return result;
         }
 
-        [HttpPost]
-        public string SalesforceUpsert(string instanceUrl, string token, string parsedResumes)
+        public HttpResponseMessage JobOrderLookup(string instanceUrl, string token, string jobOrder)
+        {
+            string restQuery = instanceUrl + @"/services/apexrest/Sovren/" + jobOrder;
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(restQuery);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                HttpResponseMessage response = client.GetAsync(restQuery).Result;
+
+                return response;
+            }
+        }
+
+        public HttpResponseMessage RecordInserts(string instanceUrl, string token, Resumes parsedResumes)
         {
             string restQuery = instanceUrl + @"/services/apexrest/Sovren/";
-            HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri(restQuery);
-            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            HttpContent content = new StringContent(parsedResumes, Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = client.PostAsync(restQuery, content).Result;
-            string result;
-            if (response.IsSuccessStatusCode)
+            using (var client = new HttpClient())
             {
-                result = response.Content.ReadAsStringAsync().Result;
-            }
-            else
-            {
-                Response.StatusCode = (int)response.StatusCode;
-                result = response.ReasonPhrase;
-            }
+                client.BaseAddress = new Uri(restQuery);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            return result;
+                HttpContent content = new StringContent(JsonConvert.SerializeObject(parsedResumes), Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = client.PostAsync(restQuery, content).Result;
+                
+                return response;
+            }
+        }
+
+        public HttpResponseMessage SovrenResumeUpdateApi(string resumeUpdate)
+        {
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(_sovrenUrl + "/update");
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+                HttpContent content = new StringContent(resumeUpdate, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = client.PostAsync(_sovrenUrl + "/update", content).Result;
+
+                return response;
+            }
         }
 
     }
+
 }

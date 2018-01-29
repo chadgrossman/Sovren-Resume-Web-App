@@ -3,11 +3,12 @@
     "Resumes": []
 };
 var ParsedResumes = {
-    "resumes": {
+    "Resumes": {
         "JobOrder": "",
         "ReturnObjects": []
     }
 };
+var ErrorResumes;
 var fileNames = [];
 var itemsProcessed = 0;
 var itemsTotal = 0;
@@ -28,12 +29,6 @@ var handleFileSelect = function (evt) {
                 DocumentAsBase64String: base64Text,
                 FileName: event.target.file
             });
-            // fileNames.push(event.target.file);
-
-            itemsProcessed++;
-            if (itemsProcessed === itemsTotal) {
-
-            }
         };
         if ($.inArray(reader.file, fileNames) === -1 && itemsTotal < 25) {
             fileNames.push(reader.file);
@@ -42,6 +37,8 @@ var handleFileSelect = function (evt) {
         }
     }
 
+    displayFileNames();
+    document.getElementById("filePicker").value = "";
     $(".file-upload p").text(itemsTotal + " file(s) selected");
 };
 
@@ -54,10 +51,14 @@ if (window.File && window.FileReader && window.FileList && window.Blob) {
     alert("The File APIs are not fully supported in this browser.");
 }
 
+$(".reset").click(function () {
+    clearResumes();
+});
+
 $(".resume-submit").click(function () {
     if (ResumeObject.Resumes.length > 0) {
         loading();
-        initialPostRequest(ResumeObject);
+        sovrenResumeApi(ResumeObject);
     }
 });
 
@@ -65,15 +66,29 @@ $(".save").click(function () {
     if (checkInputFields()) {
         loading();
         formatUpsert();
-        sovrenLookup();
+        recordCreateAndUpdate();
     }
 });
 
 /* Page Methods */
 
+function displayFileNames() {
+    var fileNamesLeft = '';
+    var fileNamesRight = '';
+    for (i = 0; i < fileNames.length; i++) {
+        if (i % 2 === 0) {
+            fileNamesLeft += "<br>" + fileNames[i];
+        } else {
+            fileNamesRight += "<br>" + fileNames[i];
+        }
+    }
+    $("#file-names-left").html(fileNamesLeft);
+    $("#file-names-right").html(fileNamesRight);
+}
+
 function displayResults() {
     columns = "";
-    $.each(ParsedResumes.resumes.ReturnObjects, function (i, val) {
+    $.each(ParsedResumes.Resumes.ReturnObjects, function (i, val) {
         var fileName = val.FileName !== null ? val.FileName : '';
         var firstName = val.FirstName !== null ? val.FirstName : '';
         var lastName = val.LastName !== null ? val.LastName : '';
@@ -87,7 +102,6 @@ function displayResults() {
             '<div class="row bottom-buffer results-body">' +
             '    <div class="col-md-2 col-sm-12">' +
             '        <input type="text" class="form-control file-name-output" value="' +
-            // fileNames[i] +
             fileName +
             '" disabled>' +
             '    </div>' +
@@ -113,24 +127,25 @@ function displayResults() {
             '    </div>' +
             '</div>';
     });
-    $.each(results.Errors, function (i, val) {
+
+    $.each(ErrorResumes, function (i, val) {
         columns +=
             '<div class="row bottom-buffer errors-body">' +
             '    <div class="col-md-4 col-sm-6">' +
             '        <input type="text" class="form-control error-msg" value="' +
             ResumeObject.Resumes[val.ResumeIndex].FileName +
             '">' +
-            "    </div>" +
+            '    </div>' +
             '    <div class="col-md-8 col-sm-6">' +
             '        <input type="text" class="form-control error-msg" value="' +
             val.ErrorMessage +
             '">' +
-            "    </div>" +
-            "</div>";
+            '    </div>' +
+            '</div>';
     });
     $(".header").after(columns);
     $(".phone-input").inputmask({ "mask": "(999) 999-9999" });
-};
+}
 
 function checkInputFields() {
     var proceed = true;
@@ -144,30 +159,31 @@ function checkInputFields() {
         }
     }
     return proceed;
-};
+}
 
 function formatUpsert() {
     var formResults = $(".results-body");
     for (i = 0; i < formResults.length; i++) {
-        var resume = ParsedResumes.resumes.ReturnObjects[i];
+        var resume = ParsedResumes.Resumes.ReturnObjects[i];
         resume.FirstName = $(formResults[i]).find(".first-name-input").val();
         resume.LastName = $(formResults[i]).find(".last-name-input").val();
         resume.EmailAddress = $(formResults[i]).find(".email-input").val();
         resume.PhoneNumber = $(formResults[i]).find(".phone-input").val();
         
-        ParsedResumes.resumes.ReturnObjects[i] = resume;
-    };
+        ParsedResumes.Resumes.ReturnObjects[i] = resume;
+    }
+    ParsedResumes.Resumes.JobOrder = $("#job-order").val().replace(/\D/g, '');
 }
 
 function loading() {
     $(".loading").toggleClass('hidden');
     $(".spinner").toggleClass('hidden');
-};
+}
 
 function transition() {
     $("#results").toggle();
     $("#data-entry").toggle();
-};
+}
 
 function clearResumes() {
     $(".results-body").remove();
@@ -175,34 +191,36 @@ function clearResumes() {
         RecruiterName: "{!$User.FirstName} {!$User.LastName}",
         Resumes: []
     };
+    fileNames = [];
+    fileHolder = null;
+    itemsProcessed = 0;
+    itemsTotal = 0;
     $(".file-upload p").text('Drag your files here or click in this area.');
-    var fileNames = [];
-    var itemsProcessed = 0;
-    var itemsTotal = 0;
-};
+}
 
 function sortResults(prop, asc) {
-    ParsedResumes.resumes.ReturnObjects = ParsedResumes.resumes.ReturnObjects.sort(function (a, b) {
+    ParsedResumes.Resumes.ReturnObjects = ParsedResumes.Resumes.ReturnObjects.sort(function (a, b) {
         if (asc) {
-            return (a[prop] > b[prop]) ? 1 : ((a[prop] < b[prop]) ? -1 : 0);
+            return a[prop] > b[prop] ? 1 : a[prop] < b[prop] ? -1 : 0;
         } else {
-            return (b[prop] > a[prop]) ? 1 : ((b[prop] < a[prop]) ? -1 : 0);
+            return b[prop] > a[prop] ? 1 : b[prop] < a[prop] ? -1 : 0;
         }
     });
-};
+}
 
 function toTitleCase(str) {
     return str.replace(/\b\+*/g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
-};
+}
 
 /* AJAX calls to controller */
-var initialPostRequest = function (json) {
+var sovrenResumeApi = function (json) {
     $.ajax({
         url: '/home/sovrenresumeapi',
         type: 'POST',
         data: { resumeRequest: JSON.stringify(json) },
         success: function (data) {
-            ParsedResumes.resumes.ReturnObjects = JSON.parse(data).ReturnObjects;
+            ParsedResumes.Resumes.ReturnObjects = JSON.parse(data).ReturnObjects;
+            ErrorResumes = JSON.parse(data).Errors;
             sortResults('FileName', true);
             displayResults();
             loading();
@@ -216,67 +234,23 @@ var initialPostRequest = function (json) {
     });
 };
 
-var updatePostRequest = function (json) {
+var recordCreateAndUpdate = function () {
     $.ajax({
-        url: '/home/sovrenresumeupdateapi',
+        url: '/home/salesforceupsert',
         type: 'POST',
-        data: { resumeUpdate: json },
+        data: {
+            "instanceUrl": instance,
+            "token": accessToken,
+            "refreshToken": refreshToken,
+            "resumes": ParsedResumes.Resumes
+        },
         success: function (data) {
             clearResumes();
             transition();
             loading();
         },
         error: function (error) {
-            console.log(error);
-            $("#input-errors").html('An error occurred sending updates.');
-            loading();
-        }
-    });
-};
-
-var sovrenLookup = function () {
-    var job = $("#job-order").val();
-    if (job !== "") {
-        $.ajax({
-            url: '/home/salesforcelookup',
-            type: 'POST',
-            data: {
-                instanceUrl: instance,
-                token: accessToken,
-                jobOrder: job.replace(/\D/g, '')
-            },
-            success: function (data) {
-                ParsedResumes.resumes.JobOrder = data.replace(/['"]/g, '');
-                sovrenUpsert();
-            },
-            error: function (error) {
-                $(".job-order").css('border', '1px solid red');
-                $("#input-errors").html('Job Order not found. Please check the Job Order and try again.');
-                loading();
-            }
-        });
-    } else {
-        console.log('No Job Order');
-        sovrenUpsert();
-    }
-};
-
-var sovrenUpsert = function () {
-    var jsonInfo = JSON.stringify(ParsedResumes);
-    $.ajax({
-        url: '/home/salesforceupsert',
-        type: 'POST',
-        data: {
-            instanceUrl: instance,
-            token: accessToken,
-            parsedResumes: jsonInfo
-        },
-        success: function (data) {
-            updatePostRequest(data);
-        },
-        error: function (error) {
-            console.log(error);
-            loading();
+            $("#input-errors").html(error);
         }
     });
 };

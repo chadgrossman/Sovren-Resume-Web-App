@@ -118,7 +118,7 @@ namespace SovrenResumeWebApp.Controllers
                 return result;
             }
         }
-
+        
         [HttpPost]
         public async Task<string> SalesforceUpsert(Resumes resumes)
         {
@@ -146,6 +146,7 @@ namespace SovrenResumeWebApp.Controllers
                     }
                     else if (jobOrderCheck.ReasonPhrase == "Unauthorized")
                     {
+                        if (refreshed == true) break;
                         refreshed = await GetRefreshToken(refreshToken);
                         continue;
                     }
@@ -174,6 +175,7 @@ namespace SovrenResumeWebApp.Controllers
                 }
                 else if (recordInserts.ReasonPhrase == "Unauthorized")
                 {
+                    if (refreshed == true) break;
                     refreshed = await GetRefreshToken(refreshToken);
                     continue;
                 }

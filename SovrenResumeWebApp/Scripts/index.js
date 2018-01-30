@@ -1,5 +1,5 @@
 ﻿var ResumeObject = {
-    "RecruiterName": userId,
+    "RecruiterName": '',
     "Resumes": []
 };
 var ParsedResumes = {
@@ -196,6 +196,8 @@ function clearResumes() {
     itemsProcessed = 0;
     itemsTotal = 0;
     $(".file-upload p").text('Drag your files here or click in this area.');
+    $("#file-names-left").html('');
+    $("#file-names-right").html('');
 }
 
 function sortResults(prop, asc) {
@@ -209,7 +211,7 @@ function sortResults(prop, asc) {
 }
 
 function toTitleCase(str) {
-    return str.replace(/\b\+*/g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
+    return str.replace(/\b\w+/g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
 }
 
 /* AJAX calls to controller */
@@ -217,7 +219,7 @@ var sovrenResumeApi = function (json) {
     $.ajax({
         url: '/home/sovrenresumeapi',
         type: 'POST',
-        data: { resumeRequest: JSON.stringify(json) },
+        data: { resumeRequest: json },
         success: function (data) {
             ParsedResumes.Resumes.ReturnObjects = JSON.parse(data).ReturnObjects;
             ErrorResumes = JSON.parse(data).Errors;
@@ -239,9 +241,6 @@ var recordCreateAndUpdate = function () {
         url: '/home/salesforceupsert',
         type: 'POST',
         data: {
-            "instanceUrl": instance,
-            "token": accessToken,
-            "refreshToken": refreshToken,
             "resumes": ParsedResumes.Resumes
         },
         success: function (data) {
@@ -250,7 +249,12 @@ var recordCreateAndUpdate = function () {
             loading();
         },
         error: function (error) {
-            $("#input-errors").html(error);
+            if (error.statusCode === 401 || error.responseText.includes('expired access/refresh token')) {
+                location.reload(true);
+            }
+            console.log(error);
+            $("#input-errors").html("An error occurred while saving the resumes.");
+            loading();
         }
     });
 };

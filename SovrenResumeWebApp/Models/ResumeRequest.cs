@@ -7,7 +7,7 @@ namespace SovrenResumeWebApp.Models
 {
     public class ResumeRequest
     {
-        public string RecruiterId { get; set; }
+        public string RecruiterName { get; set; }
         public IEnumerable<ResumeRequestObject> Resumes { get; set; }
     }
 

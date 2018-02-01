@@ -10,6 +10,7 @@ using System.Web.Mvc;
 using Newtonsoft.Json;
 using Salesforce.Common;
 using Salesforce.Common.Models;
+using SovrenResumeWebApp.Helpers;
 using SovrenResumeWebApp.Models;
 
 namespace SovrenResumeWebApp.Controllers
@@ -35,32 +36,34 @@ namespace SovrenResumeWebApp.Controllers
             var auth = new AuthenticationClient();
             await auth.WebServerAsync(_consumerKey, _consumerSecret, _callbackUrl, code, _tokenRequestEndpointUrl);
 
-            TempData["LoggedIn"] = true;
-            TempData["InstanceUrl"] = auth.InstanceUrl;
-            TempData["Token"] = auth.AccessToken;
-            TempData["RefreshToken"] = auth.RefreshToken;
-            TempData["User"] = auth.Id.Substring(auth.Id.LastIndexOf("/") + 1);
+            Session["LoggedIn"] = true;
+            Session["InstanceUrl"] = auth.InstanceUrl;
+            Session["Token"] = auth.AccessToken;
+            Session["RefreshToken"] = auth.RefreshToken;
+            Session["User"] = auth.Id.Substring(auth.Id.LastIndexOf("/") + 1);
 
-            return Redirect("Index");
+            return RedirectToAction("Upload");
         }
 
-        public ActionResult Index()
+        [Route("upload")]
+        [SalesforceFilter]
+        public ActionResult Upload()
         {
 
-            if (TempData.ContainsKey("LoggedIn") && (bool)TempData["LoggedIn"] == true)
-            {
-                Session["InstanceUrl"] = TempData["InstanceUrl"];
-                Session["Token"] = TempData["Token"];
-                Session["RefreshToken"] = TempData["RefreshToken"];
-                Session["User"] = TempData["User"];
-                Session["LoggedIn"] = true;
+            //if (TempData.ContainsKey("LoggedIn") && (bool)TempData["LoggedIn"] == true)
+            //{
+            //    Session["InstanceUrl"] = TempData["InstanceUrl"];
+            //    Session["Token"] = TempData["Token"];
+            //    Session["RefreshToken"] = TempData["RefreshToken"];
+            //    Session["User"] = TempData["User"];
+            //    Session["LoggedIn"] = true;
 
-                ViewBag.LoggedIn = true;
-            }
-
+            //    ViewBag.LoggedIn = true;
+            //}
+            ViewBag.LoggedIn = true;
             return View();
         }
-
+        
         public ActionResult Login()
         {
             var url =

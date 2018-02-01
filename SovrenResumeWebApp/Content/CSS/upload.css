@@ -31,6 +31,10 @@
     margin-bottom: 10px;
 }
 
+.error-msg {
+    border: 1px solid red;
+}
+
 .page-button {
     margin-top: 10px;
     padding: 5px 0;

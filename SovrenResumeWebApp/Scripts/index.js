@@ -134,12 +134,12 @@ function displayResults() {
             '    <div class="col-md-4 col-sm-6">' +
             '        <input type="text" class="form-control error-msg" value="' +
             ResumeObject.Resumes[val.ResumeIndex].FileName +
-            '">' +
+            '" disabled>' +
             '    </div>' +
             '    <div class="col-md-8 col-sm-6">' +
             '        <input type="text" class="form-control error-msg" value="' +
             val.ErrorMessage +
-            '">' +
+            '" disabled>' +
             '    </div>' +
             '</div>';
     });

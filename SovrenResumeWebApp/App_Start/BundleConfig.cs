@@ -35,7 +35,7 @@ namespace SovrenResumeWebApp
                         "~/Content/CSS/bootstrap.css",
                         "~/Content/CSS/file-picker.css",
                         "~/Content/CSS/loading-overlay.css",
-                        "~/Content/CSS/site.css"));
+                        "~/Content/CSS/upload.css"));
         }
     }
 }

@@ -39,7 +39,7 @@ var handleFileSelect = function (evt) {
 
     displayFileNames();
     document.getElementById("filePicker").value = "";
-    $(".file-upload p").text(itemsTotal + " file(s) selected");
+    $(".file-upload .file-text").text(itemsTotal + " file(s) selected");
 };
 
 if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -73,17 +73,12 @@ $(".save").click(function () {
 /* Page Methods */
 
 function displayFileNames() {
-    var fileNamesLeft = '';
-    var fileNamesRight = '';
+    var allFiles = '';
     for (i = 0; i < fileNames.length; i++) {
-        if (i % 2 === 0) {
-            fileNamesLeft += "<br>" + fileNames[i];
-        } else {
-            fileNamesRight += "<br>" + fileNames[i];
-        }
+        var fileFormat = '<div class="file-name-box"><p>' + fileNames[i] + '</p></div>';
+        allFiles += fileFormat;
     }
-    $("#file-names-left").html(fileNamesLeft);
-    $("#file-names-right").html(fileNamesRight);
+    $("#file-names").html(allFiles);
 }
 
 function displayResults() {
@@ -195,9 +190,8 @@ function clearResumes() {
     fileHolder = null;
     itemsProcessed = 0;
     itemsTotal = 0;
-    $(".file-upload p").text('Drag your files here or click in this area.');
-    $("#file-names-left").html('');
-    $("#file-names-right").html('');
+    $(".file-upload .file-text").text('Drag files here or click to upload.');
+    $("#file-names").html('');
 }
 
 function sortResults(prop, asc) {

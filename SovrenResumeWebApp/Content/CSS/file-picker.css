@@ -1,26 +1,60 @@
 ﻿.file-upload {
-    height: 200px;
-    border: 4px dashed #000;
+    min-height: 150px;
+    border: 2px dashed #343a4e;
+    border-radius: 5px;
     position: relative;
-    padding: 0;
+    padding: 27px 27px;
 }
 
-.file-upload p {
+.file-upload .file-message {
     width: 100%;
-    height: 100%;
+    margin: 2em 0;
     text-align: center;
-    line-height: 170px;
     color: #000;
     font-family: Arial;
+    font-size: 20px;
 }
 
 .file-upload input {
     position: absolute;
     margin: 0;
     padding: 0;
+    left: 0;
+    top: 0;
     width: 100%;
     height: 100%;
     outline: none;
     opacity: 0;
     cursor: pointer;
+}
+
+.file-upload .file-names {
+    margin: 20px 0 0 0;
+}
+
+.file-upload .file-names .file-name-box {
+    font-size: 60%;
+    display: inline-block;
+    width: 200px;
+    margin: 2.5px;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    white-space: nowrap;
+}
+
+.file-upload .file-names .file-name-box p {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 767px) {
+    .file-upload .file-names .file-name-box {
+        width: 110px;
+    }
+}
+
+@media (max-width: 991px) {
+    
 }

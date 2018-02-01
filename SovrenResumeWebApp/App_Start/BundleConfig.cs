@@ -20,7 +20,7 @@ namespace SovrenResumeWebApp
 
             bundles.Add(new ScriptBundle("~/bundles/page").Include(
                         "~/Scripts/base64.js",
-                        "~/Scripts/index.js"));
+                        "~/Scripts/upload.js"));
 
             // Use the development version of Modernizr to develop with and learn from. Then, when you're
             // ready for production, use the build tool at https://modernizr.com to pick only the tests you need.
